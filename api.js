@@ -4,7 +4,7 @@
 const CONFIG = {
     // Replace these with your actual deployed Google Apps Script Web App URLs
     ATTENDANCE_API_URL: "https://script.google.com/macros/s/AKfycbzEJrUPushqJHKHBQDjk6PP3IqBT7X9KjEh0n4M6XViK92TTgr707AKo3Q6Ecms6JPUXg/exec",
-    EXPENSE_API_URL: "https://script.google.com/macros/s/AKfycbx_VXnx8rr6jcMQDpFlC23erVwptkxh8CcOXki71d_qAESJXhRqd1uwiHKBttiQ3qR3/exec",
+    EXPENSE_API_URL: "https://script.google.com/macros/s/AKfycbwkRh8xlSac-uprCxJfDkzeW0r7JWIb-bQ6SyUffBNbeJKKnxgLcmWfTzBzn23g213g2g/exec",
 };
 
 /**
