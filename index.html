@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Attendance & Expense Tracker</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <!-- Full-screen loader -->
+    <div id="app-loader" class="loader-overlay hidden">
+        <div class="spinner"></div>
+        <p>Processing...</p>
+    </div>
+
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <h1 id="page-title">Dashboard</h1>
+            <div class="user-profile">
+                <i class="fa-solid fa-user-circle"></i>
+                <span id="header-user-name">Welcome</span>
+            </div>
+        </div>
+        <div id="fp-badge" style="font-size:0.6rem;color:rgba(255,255,255,0.5);text-align:center;padding:2px 0 4px;letter-spacing:1px;">Detecting device…</div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="app-content" class="container pb-nav">
+        <!-- ALL VIEWS ARE INJECTED OR TOGGLED HERE -->
+        
+        <!-- INITIAL SETUP VIEW (Shown if fingerprint/name not set) -->
+        <section id="view-setup" class="view">
+            <div class="setup-card glass-panel">
+                <div class="logo-container">
+                    <i class="fa-solid fa-id-badge text-primary" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <h2>Welcome to the Portal</h2>
+                    <p class="text-muted">Please set up your profile to continue.</p>
+                </div>
+                <form id="setup-form" class="form-group margin-top-lg">
+                    <label for="setup-name">Full Name</label>
+                    <input type="text" id="setup-name" name="name" required placeholder="Enter your full name" class="form-control margin-bottom-sm">
+                    
+                    <label for="setup-role">Select Your Team/Role</label>
+                    <select id="setup-role" name="role" required class="form-control">
+                        <option value="" disabled selected>Choose your team...</option>
+                        <option value="Sales">Sales Team</option>
+                        <option value="Service">Service Team</option>
+                        <option value="General">General / Office</option>
+                    </select>
+
+                    <button type="submit" class="btn btn-primary btn-block margin-top-md">Save Profile</button>
+                    <p class="text-sm text-center margin-top-sm text-muted">A secure device fingerprint will be generated and linked to your name & team.</p>
+                </form>
+            </div>
+        </section>
+
+        <!-- DASHBOARD VIEW -->
+        <section id="view-dashboard" class="view hidden">
+            <!-- Content will be generated via JS -->
+            <div class="section-title">
+                <h2>Overview</h2>
+            </div>
+            
+            <div class="grid-2 margin-bottom-md">
+                <div class="dashboard-card primary-gradient">
+                    <div class="card-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+                    <div class="card-content">
+                        <h3>My Visits</h3>
+                        <p class="big-number" id="dash-visits-count">0</p>
+                        <span class="text-sm">This Month</span>
+                    </div>
+                </div>
+                <div class="dashboard-card success-gradient">
+                    <div class="card-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+                    <div class="card-content">
+                        <h3>Attendance</h3>
+                        <p class="big-number" id="dash-attendance-count">0</p>
+                        <span class="text-sm">Days This Month</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-grid">
+                <a href="#general-attendance" class="action-btn">
+                    <i class="fa-solid fa-building-user text-primary"></i>
+                    <span>General</span>
+                </a>
+                <a href="#sales-visit" class="action-btn">
+                    <i class="fa-solid fa-handshake text-success"></i>
+                    <span>Sales Visit</span>
+                </a>
+                <a href="#service-attendance" class="action-btn">
+                    <i class="fa-solid fa-screwdriver-wrench text-warning"></i>
+                    <span>Service</span>
+                </a>
+                <a href="#expense-entry" class="action-btn">
+                    <i class="fa-solid fa-receipt text-danger"></i>
+                    <span>Expense</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- OTHER VIEWS WILL GO HERE (Forms, History, etc.) -->
+        <section id="view-general-attendance" class="view hidden">
+            <h2 class="section-title margin-bottom-md"><i class="fa-solid fa-building-user text-primary"></i> General Attendance</h2>
+            <div class="glass-panel">
+                <form id="form-general" class="form-group">
+                    <div>
+                        <label for="ga-name">Employee Name <span class="text-danger">*</span></label>
+                        <input type="text" id="ga-name" name="employeeName" class="form-control" readonly required>
+                    </div>
+                    <div>
+                        <label for="ga-location">Location (Manual Entry) <span class="text-danger">*</span></label>
+                        <input type="text" id="ga-location" name="location" class="form-control" placeholder="Enter location name" required>
+                    </div>
+                    <div>
+                        <label for="ga-purpose">Purpose <span class="text-danger">*</span></label>
+                        <input type="text" id="ga-purpose" name="purpose" class="form-control" placeholder="e.g. Office work" required>
+                    </div>
+                    
+                    <div class="photo-capture-box">
+                        <label>Selfie Capture <span class="text-danger">*</span></label>
+                        <div class="capture-ui" id="ga-selfie-ui">
+                            <div class="live-camera-container">
+                                <video id="ga-video" autoplay playsinline class="camera-stream margin-bottom-sm"></video>
+                                <button type="button" class="btn btn-secondary btn-block" onclick="captureLivePhoto('ga-video', 'ga-canvas', 'ga-selfie-preview', 'ga-selfie-data')">
+                                    <i class="fa-solid fa-camera"></i> Take Selfie
+                                </button>
+                            </div>
+                            <canvas id="ga-canvas" class="hidden"></canvas>
+                            <img id="ga-selfie-preview" class="preview-img hidden margin-top-sm" alt="Preview">
+                            <input type="hidden" id="ga-selfie-data" name="selfieB64" required>
+                            <button type="button" id="ga-retake-btn" class="btn btn-outline btn-block margin-top-sm hidden" onclick="resetLivePhoto('ga-video', 'ga-selfie-preview', 'ga-selfie-data', 'ga-retake-btn')">
+                                <i class="fa-solid fa-rotate-right"></i> Retake
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block margin-top-md">Submit Attendance</button>
+                    <input type="hidden" id="hidFingerprint-ga" name="deviceFingerprint">
+                </form>
+            </div>
+        </section>
+        <section id="view-sales-visit" class="view hidden">
+            <h2 class="section-title margin-bottom-md"><i class="fa-solid fa-handshake text-success"></i> Sales Check-In</h2>
+            <div class="glass-panel">
+                <form id="form-sales" class="form-group">
+                    <div>
+                        <label for="sv-name">Employee Name <span class="text-danger">*</span></label>
+                        <input type="text" id="sv-name" name="employeeName" class="form-control" readonly required>
+                    </div>
+                    <div>
+                        <label for="sv-company">Company <span class="text-danger">*</span></label>
+                        <input type="text" id="sv-company" name="company" class="form-control" placeholder="Client Company Name" required>
+                    </div>
+                    <div>
+                        <label for="sv-contact">Contact Person (Optional)</label>
+                        <input type="text" id="sv-contact" name="contactPerson" class="form-control" placeholder="Name of person met">
+                    </div>
+                    <div>
+                        <label for="sv-address">Visit Address <span class="text-danger">*</span></label>
+                        <textarea id="sv-address" name="visitAddress" class="form-control" rows="2" placeholder="Full address" required></textarea>
+                    </div>
+                    <div>
+                        <label for="sv-purpose">Visit Purpose <span class="text-danger">*</span></label>
+                        <select id="sv-purpose" name="visitPurpose" class="form-control" required>
+                            <option value="" disabled selected>Select Purpose</option>
+                            <option value="Lead Generation">Lead Generation</option>
+                            <option value="Followup">Followup</option>
+                            <option value="Presentation">Presentation</option>
+                            <option value="Requirement Discussion">Requirement Discussion</option>
+                            <option value="Negotiation">Negotiation</option>
+                            <option value="Deal Closing">Deal Closing</option>
+                            <option value="Payment Collection">Payment Collection</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                    <div id="sv-other-purpose-container" class="hidden">
+                        <label for="sv-other-purpose">Other Purpose <span class="text-danger">*</span></label>
+                        <input type="text" id="sv-other-purpose" name="otherPurpose" class="form-control" placeholder="Specify other purpose">
+                    </div>
+
+                    <div class="photo-capture-box">
+                        <label>Live Selfie <span class="text-danger">*</span></label>
+                        <div class="capture-ui">
+                            <div class="live-camera-container">
+                                <video id="sv-video" autoplay playsinline class="camera-stream margin-bottom-sm"></video>
+                                <button type="button" class="btn btn-secondary btn-block" onclick="captureLivePhoto('sv-video', 'sv-canvas', 'sv-selfie-preview', 'sv-selfie-data')">
+                                    <i class="fa-solid fa-camera"></i> Take Selfie
+                                </button>
+                            </div>
+                            <canvas id="sv-canvas" class="hidden"></canvas>
+                            <img id="sv-selfie-preview" class="preview-img hidden margin-top-sm" alt="Preview">
+                            <input type="hidden" id="sv-selfie-data" name="selfieB64" required>
+                            <button type="button" id="sv-retake-btn" class="btn btn-outline btn-block margin-top-sm hidden" onclick="resetLivePhoto('sv-video', 'sv-selfie-preview', 'sv-selfie-data', 'sv-retake-btn')">
+                                <i class="fa-solid fa-rotate-right"></i> Retake
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block margin-top-md" style="background-color: var(--success-color)">Submit Visit</button>
+                    <input type="hidden" id="hidFingerprint-sv" name="deviceFingerprint">
+                </form>
+            </div>
+        </section>
+        <section id="view-service-attendance" class="view hidden">
+            <h2 class="section-title margin-bottom-md"><i class="fa-solid fa-screwdriver-wrench text-warning"></i> Service Attendance</h2>
+            <div class="glass-panel">
+                <form id="form-service" class="form-group">
+                    <div>
+                        <label for="sa-name">Employee Name <span class="text-danger">*</span></label>
+                        <input type="text" id="sa-name" name="employeeName" class="form-control" readonly required>
+                    </div>
+                    <div>
+                        <label for="sa-site">Site Name <span class="text-danger">*</span></label>
+                        <input type="text" id="sa-site" name="siteName" class="form-control" placeholder="Site/Project Name" required>
+                    </div>
+                    <div>
+                        <label for="sa-labour">Number of Labour <span class="text-danger">*</span></label>
+                        <input type="number" id="sa-labour" name="numberOfLabour" class="form-control" placeholder="e.g. 5" min="0" value="0" required>
+                    </div>
+
+                    <div class="photo-capture-box">
+                        <label>Selfie <span class="text-danger">*</span></label>
+                        <div class="capture-ui">
+                            <div class="live-camera-container">
+                                <video id="sa-video" autoplay playsinline class="camera-stream margin-bottom-sm"></video>
+                                <button type="button" class="btn btn-secondary btn-block" onclick="captureLivePhoto('sa-video', 'sa-canvas', 'sa-selfie-preview', 'sa-selfie-data')">
+                                    <i class="fa-solid fa-camera"></i> Take Selfie
+                                </button>
+                            </div>
+                            <canvas id="sa-canvas" class="hidden"></canvas>
+                            <img id="sa-selfie-preview" class="preview-img hidden margin-top-sm" alt="Preview">
+                            <input type="hidden" id="sa-selfie-data" name="selfieB64" required>
+                            <button type="button" id="sa-retake-btn" class="btn btn-outline btn-block margin-top-sm hidden" onclick="resetLivePhoto('sa-video', 'sa-selfie-preview', 'sa-selfie-data', 'sa-retake-btn')">
+                                <i class="fa-solid fa-rotate-right"></i> Retake
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="photo-capture-box hidden" id="sa-labour-photo-container">
+                        <label>Labour Photo (Live) <span class="text-danger">*</span></label>
+                        <div class="capture-ui">
+                            <div class="live-camera-container">
+                                <video id="lb-video" autoplay playsinline class="camera-stream margin-bottom-sm"></video>
+                                <button type="button" class="btn btn-secondary btn-block" onclick="captureLivePhoto('lb-video', 'lb-canvas', 'sa-labour-preview', 'sa-labour-data')">
+                                    <i class="fa-solid fa-camera"></i> Take Labour Photo
+                                </button>
+                            </div>
+                            <canvas id="lb-canvas" class="hidden"></canvas>
+                            <img id="sa-labour-preview" class="preview-img hidden margin-top-sm" alt="Preview">
+                            <input type="hidden" id="sa-labour-data" name="labourB64">
+                            <button type="button" id="lb-retake-btn" class="btn btn-outline btn-block margin-top-sm hidden" onclick="resetLivePhoto('lb-video', 'sa-labour-preview', 'sa-labour-data', 'lb-retake-btn')">
+                                <i class="fa-solid fa-rotate-right"></i> Retake
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning btn-block margin-top-md" style="background-color: var(--warning-color); color: white;">Submit Service</button>
+                    <input type="hidden" id="hidFingerprint-sa" name="deviceFingerprint">
+                </form>
+            </div>
+        </section>
+        <section id="view-expense-entry" class="view hidden">
+            <h2 class="section-title margin-bottom-md"><i class="fa-solid fa-receipt text-danger"></i> Expense Detail</h2>
+            
+            <div class="expense-tabs margin-bottom-md">
+                <button class="expense-tab active" data-target="expense-new-container">
+                    <i class="fa-regular fa-pen-to-square"></i> New Entry
+                </button>
+                <button class="expense-tab" data-target="expense-history-container">
+                    <i class="fa-solid fa-chart-column"></i> History
+                </button>
+            </div>
+
+            <!-- NEW ENTRY TAB -->
+            <div id="expense-new-container" class="glass-panel">
+                <form id="form-expense" class="form-group">
+                    <div>
+                        <label for="ex-name">Employee Name <span class="text-danger">*</span></label>
+                        <input type="text" id="ex-name" name="employeeName" class="form-control" readonly required>
+                    </div>
+                    <div>
+                        <label for="ex-date">Date <span class="text-danger">*</span></label>
+                        <input type="date" id="ex-date" name="date" class="form-control" required>
+                    </div>
+                    <div>
+                        <label for="ex-category">Category <span class="text-danger">*</span></label>
+                        <select id="ex-category" name="category" class="form-control" required>
+                            <option value="" disabled selected>Select Category</option>
+                            <option value="Advance Received">Advance Received</option>
+                            <option value="Expense">Expense</option>
+                            <option value="Adjustment Against Salary">Adjustment Against Salary</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Advance Received Specific -->
+                    <div id="ex-payment-method-container" class="hidden">
+                        <label for="ex-payment-method">Payment Method <span class="text-danger">*</span></label>
+                        <select id="ex-payment-method" name="paymentMethod" class="form-control">
+                            <option value="" disabled selected>Select Method</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="UPI">UPI</option>
+                            <option value="NEFT">NEFT</option>
+                        </select>
+                    </div>
+
+                    <div id="ex-sub-category-container">
+                        <label for="ex-sub-category">Sub Category <span class="text-danger">*</span></label>
+                        <select id="ex-sub-category" name="subCategory" class="form-control" required>
+                            <option value="" disabled selected>Select Sub Category</option>
+                            <!-- Normal Expense Options -->
+                            <optgroup label="General Expenses" id="ex-opt-general">
+                                <option value="Food">Food</option>
+                                <option value="Traveling Expense">Traveling Expense</option>
+                                <option value="Stay Expense">Stay Expense</option>
+                                <option value="Vehicle Rent">Vehicle Rent</option>
+                                <option value="Local Purchase">Local Purchase</option>
+                                <option value="Contractor">Contractor</option>
+                                <option value="Local Labour">Local Labour</option>
+                                <option value="Others">Others</option>
+                            </optgroup>
+                            <!-- Adjustment Options -->
+                            <optgroup label="Salary Adjustments" id="ex-opt-adjustment" class="hidden">
+                                <option value="Deduction from Salary">Deduction from Salary</option>
+                                <option value="Added to Salary">Added to Salary</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="ex-amount">Amount (₹) <span class="text-danger">*</span></label>
+                        <input type="number" id="ex-amount" name="amount" class="form-control" min="1" step="0.01" required>
+                    </div>
+                    <div>
+                        <label for="ex-description">Description (Optional)</label>
+                        <textarea id="ex-description" name="description" class="form-control" rows="2" placeholder="Add some details..."></textarea>
+                    </div>
+
+                    <div class="photo-capture-box">
+                        <label>Attachment (Image/PDF)</label>
+                        <div class="capture-ui">
+                            <input type="file" accept="image/*,application/pdf" id="ex-attachment" class="hidden">
+                            <button type="button" class="btn btn-secondary btn-block margin-top-sm" onclick="document.getElementById('ex-attachment').click()">
+                                <i class="fa-solid fa-paperclip"></i> Upload Receipt
+                            </button>
+                            <p id="ex-attachment-name" class="text-sm text-center margin-top-sm text-muted"></p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger btn-block margin-top-md" style="background-color: var(--danger-color); color: white;">Submit Expense</button>
+                    <input type="hidden" id="hidFingerprint-ex" name="deviceFingerprint">
+                </form>
+            </div>
+
+            <!-- HISTORY TAB -->
+            <div id="expense-history-container" class="hidden">
+                <!-- Scorecard -->
+                <div class="expense-scorecard-header text-center">
+                    <h3 class="text-sm text-primary" id="expense-scorecard-month" style="text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">ALL TIME</h3>
+                </div>
+                <div class="expense-scorecard grid-3 margin-bottom-md">
+                    <div class="scorecard-item success-border">
+                        <p class="scorecard-amount text-success" id="scorecard-advance">₹0</p>
+                        <span class="scorecard-label">ADVANCE REC.</span>
+                    </div>
+                    <div class="scorecard-item danger-border">
+                        <p class="scorecard-amount text-danger" id="scorecard-expense">₹0</p>
+                        <span class="scorecard-label">EXPENSE</span>
+                    </div>
+                    <div class="scorecard-item primary-border">
+                        <p class="scorecard-amount text-primary" id="scorecard-balance">₹0</p>
+                        <span class="scorecard-label">BALANCE</span>
+                    </div>
+                </div>
+
+                <!-- Transactions Header & Filters -->
+                <div class="transactions-header">
+                    <h3>Transactions</h3>
+                    <button class="btn-refresh" onclick="loadExpenseHistory()">
+                        <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                    </button>
+                </div>
+
+                <div class="expense-filters margin-bottom-md">
+                    <button class="filter-pill active" data-filter="today">Today</button>
+                    <button class="filter-pill" data-filter="yesterday">Yesterday</button>
+                    <button class="filter-pill" data-filter="week">This Week</button>
+                    <button class="filter-pill" data-filter="month">This Month</button>
+                    <button class="filter-pill" data-filter="all">All Time</button>
+                </div>
+
+                <!-- Transactions List -->
+                <div id="expense-transactions-list" class="transactions-list">
+                    <!-- Transactions go here -->
+                    <div class="empty-state text-center margin-top-lg">
+                        <i class="fa-solid fa-mailbox fa-3x text-muted margin-bottom-sm" style="opacity: 0.5;"></i>
+                        <h4>No Transactions</h4>
+                        <p class="text-sm text-muted">No entries found for this period.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="view-history" class="view hidden">
+            <h2 class="section-title margin-bottom-md"><i class="fa-solid fa-clock-rotate-left text-primary"></i> My History</h2>
+            
+            <div class="glass-panel margin-bottom-md">
+                <div class="tab-scroller">
+                    <button class="hist-tab active" data-type="visits">Visits</button>
+                    <button class="hist-tab" data-type="general">Attendance</button>
+                    <button class="hist-tab" data-type="service">Service</button>
+                    <button class="hist-tab" data-type="expenses">Expenses</button>
+                </div>
+                
+                <div class="margin-top-md form-group">
+                    <input type="text" id="hist-search" class="form-control" placeholder="Search records...">
+                    <select id="hist-filter" class="form-control">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="history-stats grid-2 margin-bottom-md hidden" id="hist-stats-container">
+                <div class="dashboard-card primary-gradient" style="padding: 1rem;">
+                    <h3 class="text-sm">Total</h3>
+                    <p class="big-number" style="font-size: 1.5rem;" id="hist-stat-total">0</p>
+                </div>
+                <div class="dashboard-card success-gradient" style="padding: 1rem;">
+                    <h3 class="text-sm">Filtered</h3>
+                    <p class="big-number" style="font-size: 1.5rem;" id="hist-stat-filtered">0</p>
+                </div>
+            </div>
+
+            <div id="history-list" class="history-list">
+                <!-- History items injected via JS -->
+                <p class="text-center text-muted">Select a tab to load history.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="#dashboard" class="nav-item active" data-target="view-dashboard">
+            <i class="fa-solid fa-house"></i>
+            <span>Home</span>
+        </a>
+
+        <a href="#expense-entry" class="nav-item" data-target="view-expense-entry">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Expenses</span>
+        </a>
+        <a href="#history" class="nav-item" data-target="view-history">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>History</span>
+        </a>
+    </nav>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="./api.js"></script>
+    <script src="./app.js"></script>
+</body>
+</html>
